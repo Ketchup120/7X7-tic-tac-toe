@@ -1,0 +1,342 @@
+#include<stdio.h>
+#include<stdlib.h>
+char aiplayer,hplayer;
+unsigned int aicount;
+
+
+typedef struct pos
+{
+	int row;
+	int col;
+}pos;
+
+
+
+typedef struct move
+{
+	pos boardpos;
+	int score;
+}move;
+
+
+
+int checkwin(char b[7][7],char p);
+void printboard(char b[7][7]);
+pos *availspots(char b[7][7]);
+move aimove(char b[7][7],char p);
+
+
+
+int main()
+{
+	char board[7][7],player;
+	int aiwin=0,hwin=0;
+	pos *rmboxes;
+	move moveindex;
+	int i=0,j=0;
+	for(i=0;i<7;i++)
+	{
+		for(j=0;j<7;j++)
+		{
+			board[i][j]=' ';
+		}
+	}
+	printf("Choose X or O :");
+	scanf("%c",&hplayer);
+	if(hplayer=='X' || hplayer=='x')
+		{
+		aiplayer='O';
+		player=hplayer;
+		}
+	else
+		{
+		aiplayer='X';
+		player=aiplayer;
+		}
+	while(1)
+		{
+			printf("\n\n");		
+			printboard(board);
+			aiwin=checkwin(board,aiplayer);
+			hwin=checkwin(board,hplayer);
+			if(aiwin || hwin)
+				break;
+			rmboxes=availspots(board);
+			if(rmboxes[0].row==0)
+				break;
+			if(player==aiplayer)
+			{
+				printf("in aiplayer");
+				moveindex=aimove(board,player);
+				printf("out aimove");
+				printf("\n aiplayer- %c",player);
+				printf("\n (%d ,%d)",moveindex.boardpos.row,moveindex.boardpos.col);
+				board[moveindex.boardpos.row][moveindex.boardpos.col]=player;
+				player=hplayer;
+			}
+			else
+			{
+				printf("Enter your move");
+				scanf("%d %d",&moveindex.boardpos.row,&moveindex.boardpos.col);
+				board[moveindex.boardpos.row-1][moveindex.boardpos.col-1]=player;
+				player=aiplayer;
+			}
+			free(rmboxes);
+		}
+	if(aiwin==1)
+		printf("\naiwins");
+	else
+	{
+		if(hwin==1)
+			printf("\nplayerwins");
+		else
+			printf("\ndraw");
+	}
+}
+
+
+
+int checkwin(char b[7][7],char p)
+{
+	int i=0,j=0,count=0,row[7],col[7],d1[7],d2[7],rix,cix,d1ix,x=0,y=0,r,c,d2count,rcount,ccount,d1count;
+	
+	//LOOPING THROUGH EVERY SINGLE ELEMENT IN THE ARRAY
+		
+	for(x=0;x<7;x++)
+	{
+		for(y=0;y<7;y++)
+		{
+			d2count=0,rcount=0,ccount=0,d1count=0,rix=0,cix=0,d1ix=0;
+			r=x,c=y;
+			//FINDING THE SECONDARY DIAGONAL FOR EACH ELEMENT
+			while(count<=4) //CHECKING THE TOP HALF OF THE SECONDARY DIAGONAL FOR CONSECUTIVE ELEMENTS
+			{
+				if(r-count<0 || c-count<0)
+					break;
+				else
+				{
+					if(b[r-count][c-count]==p)
+					{
+						count++;
+						d2count++;
+					}
+					else
+						break;
+				}
+			}	
+			count=1;
+			while(count<=4) //CHECKING THE BOTTOM HALF OF THE SECONDARY DIAGONAL FOR CONSECUTIVE ELEMENTS
+			{
+				if(r+count>6 || c+count>6)
+					break;
+				else
+				{
+					if(b[r+count][c+count]==p)
+					{
+						count++;
+						d2count++;
+					}
+					else
+						break;
+				}
+			}
+			// LOOPING THROUGH EVERY ELEMENT TO GET THE ELEMENTS IN THE ROW,COLUMN AND THE PRIMARY DIAGONAL OF THE CURRENT ELEMENT	
+			for(i=0;i<7;i++)
+			{
+				for(j=0;j<7;j++)
+				{
+					if(i==r)
+					{
+						//printf("\tchecking rows (i=%d) (j=%d) (x=%d) (y=%d) (r=%d) (c=%d)",i,j,x,y,r,c);
+						row[rix]=b[i][j];
+						rix++;
+					}
+					if(j==c)
+					{
+						//printf("\tchecking colums (i=%d) (j=%d) (x=%d) (y=%d) 9r=%d) (c=%d)",i,j,x,y,r,c);
+						col[cix]=b[i][j];
+						cix++;
+					}
+					if(i+j==r+c)
+					{
+						//printf("\tchecking diagonal 1 (i=%d) (j=%d) (x=%d) (y=%d)",i,j,x,y);
+						d1[d1ix]=b[i][j];
+						d1ix++;
+					}
+			
+				}
+			}
+			// CHECKING FOR 4 CONSECUTIVE ELEMENTS IN THE ROWS,COLUMNS AND PRIMARY DIAGONAL OF THE GIVEN ELEMENT
+			for(i=0;i<7;i++)
+			{
+				if(row[i]==p)
+					rcount++;
+				else
+					rcount=0;
+				if(col[i]==p)
+					ccount++;
+				else
+					ccount=0;
+				if(d1[i]==p)
+					d1count++;
+				else
+					d1count=0;
+			}
+			/*printf("\n rcount= %d",rcount);
+			printf("\n ccount= %d",ccount);
+			printf("\n d1count= %d",d1count);
+			printf("\n d2count= %d",d2count);*/
+			if(rcount>=4 || ccount>=4 || d1count>=4 || d2count>=4)
+			{
+				return 1;
+			}		
+		}	
+	}
+	return 0;
+}
+
+
+
+void printboard(char b[7][7])
+{
+	int i,j;
+	// LOOPING THROUGH EVERY ELEMENT AND PRINTING THE BOARD	
+	for(i=0;i<7;i++)
+	{	
+		printf("\n");
+		for(j=0;j<7;j++)
+		{
+			printf(" %c ",b[i][j]);
+			if(j<6)
+				printf("|");
+		}
+		if(i<6)
+			printf("\n___|___|___|___|___|___|___");
+	}
+}
+
+
+
+pos *availspots(char b[7][7])
+{
+	int i=0,j=0;
+	int remspots=0; // TO STORE THE NUMBER OF REMAINING SPOTS
+	pos *emptyspots; // ARRAY POINTER TO STORE THE LIST OF EMPTY SPOTS
+	pos *temp; // TEMP POS POINTER TO STORE THE CURRENT BOARD POSITION
+	temp=(pos*)malloc(sizeof(pos));
+	emptyspots=(pos*)malloc(50*sizeof(pos)); // 50 BECAUSE NEED A SPOT TO STORE THE NUMBER OF ELEMENTS
+	for(i=0;i<7;i++) // LOOPING THROUGH EVERY ELEMENT
+	{		
+		for(j=0;j<7;j++)
+		{
+			if(b[i][j]==' ') //CHECKING IF THE SPOT IS EMPTY
+			{
+				temp->row=i;
+				temp->col=j;
+				remspots++; //INCREASING THE COUNT 
+				emptyspots[remspots]=*temp; //STORING THE EMPTY SPOT ONTO THE EMPTYSPOTS ARRAY STARTING FROM INDEX 1
+			}
+		}
+	}
+	temp->row=remspots; //INSERTING THE COUNT INTO THE TEMP.ROWS
+	emptyspots[0]=*temp; // PLACING THE TEMP IN THE FIRST SPOT OF THE ARRAY
+	free(temp);
+	return emptyspots;
+}
+
+
+
+move aimove(char b[7][7],char p)
+{
+	printf("\nentering ai move");	
+	aicount++;
+	printf("\n COUNT = %d",aicount);
+	char temp[7][7];
+	int i=0,j=0,movecount=0;
+	for(i=0;i<7;i++) // CREATING A COPY OF THE BOARD IN TEMP
+	{				
+		for(j=0;j<7;j++)
+		{
+			temp[i][j]=b[i][j];
+		}
+	}
+	pos *rempos=availspots(temp);	// GETTING THE EMPTYSPOTS FROM AVAILSPOTS FUNCTION AND STORING IT IN REMPOS
+	move *m; // CREATING A TEMPORARY MOVE VARIABLE TO RETURN THE SCORES FOR WIN,LOSE OR DRAW
+	m=malloc(sizeof(move));	
+	if(checkwin(temp,aiplayer)) // CHECKING FOR AIWIN
+	{				
+		m->score=10;
+		printf("\n\n aiplayer won");
+		aicount--;		
+		return *m;
+	}	
+	else
+	{
+		if (checkwin(b,hplayer)) //CHECKING FOR HUMANWIN
+		{				
+			m->score=-10;
+			printf("\n\n hplayer won");
+			aicount--;
+			return *m;
+		}
+		else
+		{
+			if(rempos->row==0) //CHECKING FOR DRAW
+				{
+				m->score=0;
+				printf("\n\n DRAW");
+				aicount--;
+				return *m;
+				}		
+		}
+	}
+	free(m); //FREEING M
+	move *moves=malloc(49*sizeof(move)); // CREATING A MOVE ARRAY TO STORE THE POSSIBLE MOVES
+	for(i=1;i<=rempos[0].row;i++) // ITERATING THROUGH EVERY POSSIBLE MOVE(IT WILL GO ON RECCURSIVELY UNTIL A VALUE IS RETURNED, AFTER MAKING A MOVE(M1) WE WILL AGAIN ITERATE THROUGH EVERY POSSIBLE MOVE AFTER THAT MOVE(M1) WITH THE OTHER PLAYER AS THE PLAYER
+	{
+		move t,t1; // CREATING TWO TEMPORARY MOVE VARIABLES
+		t.boardpos=rempos[i]; //STORING THE NEXT EMPTY POS IN T.BOARDPOS 
+		temp[t.boardpos.row][t.boardpos.col]=p; // PLACING THE PLAYER IN THE FIRST EMPTY SPOT
+		if(p==aiplayer)
+		{
+			t1=aimove(temp,hplayer); // CALLING THE FUNCTION AGAIN WITH HUMAN PLAYER AS PLAYER IF AI IS CURRENT AND STORING THE RETURN VALUE IN T1
+			t.score=t1.score; // STORING THE SCORE FROM THE RETURN VALUE IN T.SCORE
+		}
+		else
+		{
+			t1=aimove(temp,aiplayer); //CALLING THE FUNCTION AGAI WITH AIPLAYER AS PLAYER IF CURRENT WAS HUMAN AND STORING THE RETURN VALUE IN T1
+			t.score=t1.score; //STORING THE SCORE FTOM RETURN VALUE IN T.SCORE
+		}
+		moves[i-1]=t; //STORING THE CURRENT MOVE IN THE MOVES
+		movecount++;
+	}
+	free(rempos); //FREEING REMPOS
+	move bestmove;
+	if(p=aiplayer) // SINCE WE ASSIGN 10 TO THE AI WIN SENARIO FINDING THE MOVE WITH THE HIGHEST SCORE IN THE MOVES ARRAY
+	{		
+		int bestscore=-1000000;	
+		for(i=0;i<movecount;i++)
+		{
+			if(moves[i].score > bestscore)
+			{
+				bestscore=moves[i].score;
+				bestmove=moves[i];
+			}
+		}
+	}
+	if(p=hplayer) // SINCE WE ASSIGN -10 TO THE HUMAN WIN SENARIO FINDING THE MOVE WITH THE LOWEST SCORE IN THE MOVES ARRAY
+	{		
+		int bestscore=1000000;		
+		for(i=0;i<movecount;i++)
+		{
+			if(moves[i].score < bestscore)
+			{
+				bestscore=moves[i].score;
+				bestmove=moves[i];
+			}
+		}
+	}
+	free(moves); //FREEING MOVES
+	aicount--;
+	return 	bestmove; //RETURNING THE BEST MOVE
+}
